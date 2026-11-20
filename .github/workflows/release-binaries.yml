@@ -56,6 +56,12 @@ jobs:
           ls -l "$OUT"
           sha256sum "$OUT" > "$OUT.sha256"
           cat "$OUT.sha256"
+          # 前端托管 + API 反代（cmd/webproxy，零依赖）
+          WP="pansou-webproxy-${{ matrix.suffix }}"
+          go build -trimpath -ldflags "-s -w" -o "$WP" ./cmd/webproxy
+          chmod +x "$WP"
+          sha256sum "$WP" > "$WP.sha256"
+          ls -l "$WP"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -64,6 +70,8 @@ jobs:
           path: |
             pansou-${{ matrix.suffix }}
             pansou-${{ matrix.suffix }}.sha256
+            pansou-webproxy-${{ matrix.suffix }}
+            pansou-webproxy-${{ matrix.suffix }}.sha256
           if-no-files-found: error
 
   release:
@@ -100,10 +108,18 @@ jobs:
 
             | 文件 | 适用 |
             |---|---|
-            | `pansou-arm64` | 手机 / 电视 / ARM64 服务器（**WebHTV 实验室用这个**） |
+            | `pansou-arm64` | 后端本体，手机 / 电视 / ARM64（**WebHTV 实验室用这个**） |
+            | `pansou-webproxy-arm64` | 前端托管 + `/api` 反代（配 `pansou-web-dist.zip` 用） |
             | `pansou-amd64` | x86_64 服务器 / NAS |
 
-            运行：`PORT=8888 ./pansou-arm64`（可选环境变量 CHANNELS / ENABLED_PLUGINS / PROXY / CACHE_PATH 等，与官方一致）
+            用法（两个进程）：
+            ```
+            PORT=8888 ./pansou-arm64 &
+            LISTEN=:8080 WEB_ROOT=./dist API_UPSTREAM=http://127.0.0.1:8888 ./pansou-webproxy-arm64 &
+            # 浏览器开 http://127.0.0.1:8080
+            ```
+
+            只跑 API：`PORT=8888 ./pansou-arm64`（可选环境变量 CHANNELS / ENABLED_PLUGINS / PROXY / CACHE_PATH 等，与官方一致）
 
             提交：`${{ github.sha }}`
           files: |
