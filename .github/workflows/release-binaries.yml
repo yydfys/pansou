@@ -29,10 +29,8 @@ jobs:
             goarch: arm64
             goarm: ""
             suffix: arm64
-          - arch: armv7
-            goarch: arm
-            goarm: "7"
-            suffix: armv7
+          # armv7（32 位）暂时编不了：bytedance/sonic v1.14 不支持 32 位架构
+          # 如需 32 位，得把 util/json 改成 build tag 走 encoding/json 回退
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -103,7 +101,6 @@ jobs:
             | 文件 | 适用 |
             |---|---|
             | `pansou-arm64` | 手机 / 电视 / ARM64 服务器（**WebHTV 实验室用这个**） |
-            | `pansou-armv7` | 32 位 ARM 设备（armv7） |
             | `pansou-amd64` | x86_64 服务器 / NAS |
 
             运行：`PORT=8888 ./pansou-arm64`（可选环境变量 CHANNELS / ENABLED_PLUGINS / PROXY / CACHE_PATH 等，与官方一致）
